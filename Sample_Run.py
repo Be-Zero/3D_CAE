@@ -8,21 +8,10 @@ from Decoder import Decoder
 from Encoder import Encoder
 from matplotlib import pyplot as plt
 from Loss import network_loss
-
+####################Parameters#############################
 #Data Load
-DIR_PATH = r'D:\3DShapeNets\volumetric_data\airplane\30\train'
+DIR_PATH = "Your Path" #ShapeNet airplane data for EX
 Airplane_Data = EX_airplane(DIR_PATH,object_ratio=0.1)
-print(Airplane_Data)
-print(np.shape(Airplane_Data))
-print(len(Airplane_Data))
-# # Airplane_Data=np.reshape(Airplane_Data,(len(Airplane_Data),64,64,64))
-# fig = plt.figure()
-# ax = fig.add_subplot(projection='3d')
-# # ax.set_aspect('equal')
-# ax.voxels(Airplane_Data[0], edgecolor='red')
-# plt.show()
-#
-
 
 #Hyper-Parameters
 num_epochs = int(300)
@@ -33,7 +22,7 @@ device = torch.device("cuda:0" if (torch.cuda.is_available() and 64 > 0) else "c
 batch_size=64
 
 # Initialize BCELoss function
-criterion = nn.BCELoss().to(device)
+criterion = network_loss()
 size = len(Airplane_Data)
 print(size)
 
@@ -43,7 +32,7 @@ input_dim = 512  # convolutional channels
 dim = 64  # cube volume
 # noise = torch.rand(1, noise_dim).to(device)
 # print(noise.is_cuda)
-
+#############################################################
 print(torch.Tensor(Airplane_Data[0]))
 
 model_Encoder = Encoder(in_channels=1, dim=64, out_conv_channels=512).to(device)
@@ -78,19 +67,19 @@ for epoch in range(num_epochs):
     for idx in range(len(Airplane_Data)):
 
         ############################
-        # 3D-CAE network: maximize L2 norm
+        # 3D-CAE network: minimize L2 norm + KLD loss
         ###########################
         ## Encoder
         model_Encoder.zero_grad()
         # Format batch
         real_cuda = torch.Tensor(Airplane_Data[idx]).to(device)
         b_size = batch_size
-        # Forward pass real batch through D
+        # Forward pass batch through E
         output_z = model_Encoder(real_cuda)
 
         ## Decoder
         Reconstruction = model_Decoder(output_z)
-        errD = network_loss(Reconstruction, real_cuda)
+        errD = criterion(Reconstruction, real_cuda)
         errD.backward()
         # Update E & D
         optimizerD.step()
@@ -102,7 +91,6 @@ for epoch in range(num_epochs):
                      errD.item()))
 
         # Save Losses for plotting later
-        # G_losses.append(errG.item())
         D_losses.append(errD.item())
 
         # Check how the generator is doing by saving G's output on fixed_noise
@@ -114,13 +102,13 @@ for epoch in range(num_epochs):
         iters += 1
 
 #Saving model weight
-SAVE_PATH = r'C:\Users\USER\PycharmProjects\Generative_design\pretrained'
-torch.save(model_Decoder, SAVE_PATH + '\model_G.pt')
+SAVE_PATH = "Yore save path"
+torch.save(model_Decoder, SAVE_PATH + '\model_D.pt')
 torch.save({
     'model': model_Decoder.state_dict(),
     'optimizer': optimizerD.state_dict()
 }, SAVE_PATH + r'\all.tar')
-torch.save(model_Encoder, SAVE_PATH + '\model_D.pt')
+torch.save(model_Encoder, SAVE_PATH + '\model_E.pt')
 torch.save({
     'model': model_Encoder.state_dict(),
     'optimizer': optimizerD.state_dict()
