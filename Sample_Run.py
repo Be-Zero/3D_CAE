@@ -8,7 +8,8 @@ from Decoder import Decoder
 from Encoder import Encoder
 from matplotlib import pyplot as plt
 from Loss import network_loss
-####################Parameters#############################
+
+#################################Parameters#########################################
 #Data Load
 DIR_PATH = "Your Path" #ShapeNet airplane data for EX
 Airplane_Data = EX_airplane(DIR_PATH,object_ratio=0.1)
@@ -30,26 +31,12 @@ print(size)
 noise_dim = 200  # latent space vector dim
 input_dim = 512  # convolutional channels
 dim = 64  # cube volume
-# noise = torch.rand(1, noise_dim).to(device)
-# print(noise.is_cuda)
-#############################################################
-print(torch.Tensor(Airplane_Data[0]))
+####################################################################################
+
+# print(torch.Tensor(Airplane_Data[0]))
 
 model_Encoder = Encoder(in_channels=1, dim=64, out_conv_channels=512).to(device)
-# # sample_z = model_Encoder(torch.Tensor(Airplane_Data[0]))
-# print("model_Encoder output", sample_z.item())
-#
 model_Decoder = Decoder(input_dim=input_dim, out_dim=dim, out_channels=1, noise_dim=noise_dim,activation="sigmoid").to(device)
-# generated_volume = model_Decoder(sample_z)
-# print("model_Decoder output shape", generated_volume.shape,generated_volume)
-
-
-
-
-# Create batch of latent vectors that we will use to visualize
-#  the progression of the generator
-# fixed_noise = torch.randn(64, nz, 1, 1, device=device)
-
 
 # Setup Adam optimizers for both G and D
 optimizerE = optim.Adam(model_Encoder.parameters(), lr=lr_D, betas=(beta1, 0.999))
@@ -66,9 +53,9 @@ for epoch in range(num_epochs):
     # For each batch in the dataloader
     for idx in range(len(Airplane_Data)):
 
-        ############################
-        # 3D-CAE network: minimize L2 norm + KLD loss
-        ###########################
+        ################################################
+        ## 3D-CAE network: minimize L2 norm + KLD loss##
+        ################################################
         ## Encoder
         model_Encoder.zero_grad()
         # Format batch
